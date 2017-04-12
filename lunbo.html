@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <style>
+            .hide {
+                display: none;
+            }
+            .menu-content {
+                height: 100px;
+                border: 1px solid red;
+            }
+            .item {
+                /*display: inline-block;*/
+                /*opacity: 0.6;*/
+                filter: grayscale(100%)
+            }
+            .item.highlight {
+                filter: initial;
+                /*opacity: 1;*/
+            }
+            .item.highlight img {
+                width: 150px;
+                height: 150px;
+            }
+            img {
+                transition: width 1s, height 1s;
+            }
+            .item img {
+                width: 100px;
+                height: 100px
+            }
+
+            /* 3， 轮播图*/
+            .slide {
+                position: relative;
+            }
+            .slide-image {
+                display: none;
+            }
+            /*.slide-image*/
+            .active {
+                display: inline-block;
+				height: 320px;
+				width: 480px;
+            }
+            .slide-button {
+                height: 50px;
+            }
+            .left {
+                left: 0;
+            }
+            .right {
+                right: 0;
+            }
+            /* 垂直居中效果 */
+            .vertical-center {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            .slide-indicators {
+                position: absolute;
+                bottom: 10px;
+            }
+            .slide-indi-bg {
+                background: white;
+                opacity: 0.3;
+                width: 100%;
+                height: 100%;
+            }
+            .slide-indi {
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: red;
+            }
+            .white {
+                background: white;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- 轮播图 -->
+        <div class="3">
+            <!-- data-imgs 是图片的总数 -->
+            <!-- data-active 是当前显示的图片的下标 -->
+            <div class="slide" data-imgs=3 data-active=0>
+                <img id=id-image-0 class="slide-image active" src="slideimages1.jpg" alt="">
+                <img id=id-image-1 class=slide-image src="slideimages2.jpg" alt="">
+                <img id=id-image-2 class=slide-image src="slideimages3.jpg" alt="">
+                <button class="slide-button left vertical-center" data-next="-1">上一张</button>
+                <button class="slide-button right vertical-center" data-next="1">下一张</button>
+                <div class="slide-indicators">
+                    <div id=id-indi-0 class="slide-indi white"></div>
+                    <div id=id-indi-1 class="slide-indi"></div>
+                    <div id=id-indi-2 class="slide-indi"></div>
+                </div>
+            </div>
+        </div>
+        <script>
+		var log = function() {
+		    console.log.apply(console, arguments)
+		}
+
+		var e = function(selector) {
+		    return document.querySelector(selector)
+		}
+
+		var appendHtml = function(element, html) {
+			element.insertAdjacentHTML('beforeend', html)
+		}
+
+		var bindEvent = function(element, eventName, callback) {
+		    element.addEventListener(eventName, callback)
+		}
+
+		var toggleClass = function(element, className) {
+		    if (element.classList.contains(className)) {
+		        element.classList.remove(className)
+		    } else {
+		        element.classList.add(className)
+		    }
+		}
+
+		var removeClassAll = function(className) {
+		    var selector = '.' + className
+		    var elements = document.querySelectorAll(selector)
+		    for (var i = 0; i < elements.length; i++) {
+		        var e = elements[i]
+		        e.classList.remove(className)
+		    }
+		}
+
+		var bindAll = function(selector, eventName, callback) {
+		    var elements = document.querySelectorAll(selector)
+		    for(var i = 0; i < elements.length; i++) {
+		        var e = elements[i]
+		        bindEvent(e, eventName, callback)
+		    }
+		}
+
+		// find 函数可以查找 element 的所有子元素
+		var find = function(element, selector) {
+		    return element.querySelector(selector)
+		}
+
+		var closestClass = function(element, className){
+		    /*
+		    element 是一个 DOM 元素
+		    className 是一个 string
+		    循环查找 element 的直系父元素
+		    如果父元素拥有 className 这个 class, 则返回这个父元素
+		    如果找到 document 都还没有, 则返回 null
+		    */
+		    var e = element
+		    while (e != document) {
+		        if (e.classList.contains(className)) {
+		            return e
+		        } else {
+		            e = e.parentElement
+		        }
+		    }
+		    return null
+		}
+
+		/*
+		1，写一个 div 里面有 3 个 img 标签
+		2，只显示当前活动的 img 标签
+		3，加 1 个按钮，点击的时候切换图片
+		*/
+
+		var bindEventSlide = function() {
+		    var selector = '.slide-button'
+		    bindAll(selector, 'click', function(event){
+		        console.log('click next')
+		        // 找到按钮
+		        var button = event.target
+		        // 求出下一个 index
+		        var index = nextIndex(button)
+		        // 切换到下一张图片和下一个小圆点
+		        showImage(index)
+		        // log('show before', index)
+		        showIndicator(index)
+		    })
+		}
+
+		var 定时播放 = function(){
+		    // 组合选择器
+		    var button = e('.slide-button.right')
+		    setInterval(function(){
+		        // 调用 click() 函数来模拟点击
+		        button.click()
+		    }, 3000)
+		}
+
+		var nextIndex = function(button) {
+		    // 找到 slide div
+		    var slide = button.parentElement
+		    // 得到图片总数和当前图片下标
+		    // parseInt 是一个把字符串转为数字的库函数
+		    var numberOfImgs = parseInt(slide.dataset.imgs)
+		    var activeIndex = parseInt(slide.dataset.active)
+		    // log('click slide', )
+		    // 求出下一张图片的 id
+		    var offset = parseInt(button.dataset.next)
+		    var index = (numberOfImgs + activeIndex + offset) % numberOfImgs
+		    // 设置父节点的 data-active
+		    slide.dataset.active = index
+		    return index
+		}
+
+		var showImage = function(index) {
+		    log('show image', index)
+		    // 得到下一张图片的选择器
+		    var nextSelector = '#id-image-' + String(index)
+		    // 删除当前图片的 class 给下一张图片加上 class
+		    var className = 'active'
+		    removeClassAll(className)
+		    var img = e(nextSelector)
+		    img.classList.add(className)
+		}
+
+		var showIndicator = function(index) {
+		    // log('show indi', index)
+		    // 得到下一个小圆点的选择器
+		    var nextSelector = '#id-indi-' + String(index)
+		    // 删除当前小圆点的 class 给下一个小圆点加上 class
+		    var className = 'white'
+		    removeClassAll(className)
+		    var indi = e(nextSelector)
+		    indi.classList.add(className)
+		}
+
+		var bindEventIndi = function() {
+			var selector = '.slide-indi'
+			bindAll(selector, 'click', function(event){
+				console.log('click indi')
+				var oldIndi = e('.white')
+				oldIndi.classList.remove('white')
+				var oldImg = e('.active')
+				oldImg.classList.remove('active')
+				var indi = event.target
+				indi.classList.add('white')
+				var index = indi.dataset.index
+				var current = e(index)
+				current.classList.add('active')
+			})
+		}
+		bindEventSlide()
+		定时播放()
+
+		bindEventIndi()
+		</script>
+    </body>
+</html>
